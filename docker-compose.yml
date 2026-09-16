@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  milijon:
+    build: .
+    container_name: milijon-worker
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ADMIN_PASSWORD=milijon_admin_2026
+      - SERVER_DOMAIN=
+    volumes:
+      - ./data:/app/data

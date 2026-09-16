@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milijon - پنل مدیریت ورکر پروکسی</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Vazirmatn -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            milijon: {
+              bg: '#090d16',
+              card: 'rgba(17, 24, 39, 0.75)',
+              border: 'rgba(255, 255, 255, 0.08)',
+              accent: '#38bdf8',
+              emerald: '#10b981',
+              purple: '#a855f7',
+              rose: '#f43f5e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090d16;
+      background-image: 
+        radial-gradient(at 15% 15%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: 'Vazirmatn', sans-serif;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .glass-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="glass-card border-b border-slate-800/80 sticky top-0 z-30 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+            Milijon
+          </h1>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono font-semibold">
+            Railway Worker
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">ورکر اختصاصی پروکسی پایتون با پشتیبانی از چند پروتکل و ضد فیلترینگ</p>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800 text-xs text-slate-300 font-mono">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="domainBadge">{{ domain }}</span>
+      </div>
+
+      <button id="langToggle" onclick="toggleLang()" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs font-semibold transition">
+        English
+      </button>
+
+      <button id="logoutBtn" onclick="logout()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-medium transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span class="t-logout">خروج</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- STATS OVERVIEW CARDS -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Active Users -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition"></div>
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span class="t-active-users">کاربران فعال / کل</span>
+          <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </div>
+        <div class="text-2xl sm:text-3xl font-bold font-mono text-white">
+          <span id="statActiveUsers">0</span> <span class="text-sm font-normal text-slate-500">/ <span id="statTotalUsers">0</span></span>
+        </div>
+      </div>
+
+      <!-- Total Traffic -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition"></div>
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span class="t-traffic">ترافیک مصرفی کل</span>
+          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+        </div>
+        <div class="text-lg sm:text-xl font-bold font-mono text-white flex items-baseline gap-2">
+          <span id="statTotalTraffic">0 MB</span>
+        </div>
+        <div class="text-[11px] text-slate-400 font-mono mt-1 flex justify-between">
+          <span>↑ <span id="statUpload">0 B</span></span>
+          <span>↓ <span id="statDownload">0 B</span></span>
+        </div>
+      </div>
+
+      <!-- Uptime -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition"></div>
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span class="t-uptime">مدت زمان فعال بودن</span>
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold font-mono text-white" id="statUptime">
+          --:--:--
+        </div>
+      </div>
+
+      <!-- Server Engine -->
+      <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition"></div>
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium mb-2">
+          <span class="t-engine">موتور اجرایی</span>
+          <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+        </div>
+        <div class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+          <span>Python 3.11</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Async</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 glass-card rounded-2xl p-4">
+      <div class="flex items-center gap-3">
+        <div class="relative flex-1 sm:w-80">
+          <input type="text" id="searchInput" oninput="filterUsers()" placeholder="جستجوی کاربر یا یادداشت..." class="glass-input w-full rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none">
+        </div>
+        <select id="filterPreset" onchange="filterUsers()" class="glass-input rounded-xl py-2 px-3 text-sm text-slate-300 focus:outline-none">
+          <option value="all">همه کشورها / All</option>
+          <option value="iran">🇮🇷 ایران (Iran)</option>
+          <option value="china">🇨🇳 چین (China)</option>
+          <option value="russia">🇷🇺 روسیه (Russia)</option>
+          <option value="global">🌐 عمومی (Global)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="openAddUserModal()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-medium text-sm shadow-lg shadow-sky-500/20 transition flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span class="t-add-user">افزودن کاربر جدید</span>
+        </button>
+        <button onclick="fetchUsersAndStats()" class="p-2.5 rounded-xl glass-input hover:bg-slate-800 text-slate-300 transition" title="تازه‌سازی">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- USERS LIST CONTAINER -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+          <span class="t-users-title">لیست کاربران و دسترسی‌ها</span>
+        </h2>
+        <span class="text-xs text-slate-400 font-mono" id="userCountBadge">0 کاربر</span>
+      </div>
+
+      <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- User Cards Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- REGIONAL PRESETS & ANTI-FILTERING SETTINGS -->
+    <div class="glass-card rounded-2xl p-6 space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-200 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="t-anti-filter">پیکربندی تخصصی ضد فیلتر (ایران، چین، روسیه)</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-1">تکنولوژی‌های تعبیه شده در هسته پایتون Milijon برای عبور پایدار از سیستم‌های فیلترینگ DPI</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <!-- Iran Preset -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between text-sky-400 font-semibold text-sm">
+            <span>🇮🇷 ایران (DPI & Mobile Nets)</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10">Active</span>
+          </div>
+          <p class="text-slate-400">
+            • <b>TLS Fragment:</b> تقسیم پکت هلو به قطعات <code class="text-sky-300">100-200</code> با تاخیر <code class="text-sky-300">10-20ms</code> جهت رد شدن از سنسورهای همراه اول و ایرانسل.<br>
+            • <b>Early Data:</b> حذف ۱ RTT تاخیر برای افزایش سرعت در شبکه ملی.<br>
+            • <b>Clean IP:</b> جایگزینی مستقیم آی‌پی‌های تمیز کلودفلر با حفظ SNI.
+          </p>
+        </div>
+
+        <!-- China Preset -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between text-purple-400 font-semibold text-sm">
+            <span>🇨🇳 چین (GFW Anti-Replay)</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10">Active</span>
+          </div>
+          <p class="text-slate-400">
+            • <b>ALPN Masquerade:</b> تنظیم روی <code class="text-purple-300">h2,http/1.1</code> برای رفتار مشابه وب‌سایت‌های استاندارد HTTPS.<br>
+            • <b>Websocket Obfuscation:</b> ارسال داده‌ها بر بستر وب‌سوکت رمزگذاری شده جهت جلوگیری از پروب فعال (Active Probing).
+          </p>
+        </div>
+
+        <!-- Russia Preset -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between text-rose-400 font-semibold text-sm">
+            <span>🇷🇺 روسیه (RKN TSPU Bypass)</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10">Active</span>
+          </div>
+          <p class="text-slate-400">
+            • <b>SNI Masking:</b> پوشش کامل هدر دامنه با گواهینامه TLS معتبر ریلوی.<br>
+            • <b>No OpenVPN/WG Signature:</b> پکت‌ها کاملا ترافیک وب HTTPS عادی تلقی می‌شوند و برچسب فیلترینگ دریافت نمی‌کنند.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ADD USER MODAL -->
+  <div id="addUserModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          <span class="t-modal-add-title">افزودن کاربر جدید به Milijon</span>
+        </h3>
+        <button onclick="closeAddUserModal()" class="text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form id="addUserForm" onsubmit="submitAddUser(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">نام کاربری / Username *</label>
+          <input type="text" id="modalUsername" required placeholder="مثال: ali_vip" class="glass-input w-full rounded-xl py-2.5 px-3 text-slate-100 focus:outline-none">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-slate-300 font-medium">کد شناسایی (UUID) VLESS</label>
+            <button type="button" onclick="generateRandomUUID()" class="text-sky-400 hover:underline text-[11px]">تولید خودکار</button>
+          </div>
+          <input type="text" id="modalUUID" placeholder="تولید خودکار در صورت خالی بودن" class="glass-input font-mono w-full rounded-xl py-2 px-3 text-slate-200 focus:outline-none">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-slate-300 font-medium">رمز عبور (Password) Trojan</label>
+            <button type="button" onclick="generateRandomPass()" class="text-sky-400 hover:underline text-[11px]">تولید خودکار</button>
+          </div>
+          <input type="text" id="modalPass" placeholder="تولید خودکار در صورت خالی بودن" class="glass-input font-mono w-full rounded-xl py-2 px-3 text-slate-200 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">تنظیم بهینه‌سازی منطقه / Country Preset</label>
+          <select id="modalPreset" class="glass-input w-full rounded-xl py-2.5 px-3 text-slate-200 focus:outline-none">
+            <option value="iran" selected>🇮🇷 ایران (بهینه‌سازی فرگمنت + کلین آی‌پی)</option>
+            <option value="china">🇨🇳 چین (ضد GFW و ALPN h2)</option>
+            <option value="russia">🇷🇺 روسیه (ضد RKN)</option>
+            <option value="global">🌐 عمومی (Global Direct)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-medium mb-1.5">یادداشت / توضیحات</label>
+          <input type="text" id="modalNotes" placeholder="مثال: اشتراک یک‌ماهه" class="glass-input w-full rounded-xl py-2 px-3 text-slate-200 focus:outline-none">
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 rounded-xl glass-input text-slate-300 hover:bg-slate-800 transition">انصراف</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-medium transition shadow-lg shadow-sky-500/20">ثبت و ایجاد کانفیگ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- QR CODE & LINKS MODAL -->
+  <div id="qrModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl relative space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+          <span id="qrModalTitle">کانفیگ و بارکد</span>
+        </h3>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- QR Code Canvas / Display -->
+      <div class="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-inner">
+        <div id="qrContainer" class="flex items-center justify-center"></div>
+      </div>
+
+      <!-- Config Link Field & Copy -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span id="qrConfigTypeLabel">لینک کانفیگ:</span>
+          <button onclick="copyModalLink()" class="text-sky-400 hover:underline flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>کپی متن لینک</span>
+          </button>
+        </div>
+        <textarea id="qrLinkText" readonly rows="3" class="w-full text-[11px] font-mono glass-input rounded-xl p-2.5 text-slate-300 resize-none select-all focus:outline-none"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-6 border border-slate-700 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 mx-auto flex items-center justify-center shadow-lg shadow-sky-500/30">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-white">ورود به پنل Milijon</h3>
+        <p class="text-xs text-slate-400 mt-1">لطفاً رمز عبور مدیر را وارد نمایید</p>
+      </div>
+      <form onsubmit="submitLogin(event)" class="space-y-3">
+        <input type="password" id="adminPasswordInput" required placeholder="Password" class="glass-input w-full rounded-xl py-2.5 px-3 text-center text-slate-100 text-sm focus:outline-none font-mono">
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-medium text-sm transition shadow-lg shadow-sky-500/20">ورود به سیستم</button>
+      </form>
+      <div id="loginError" class="text-xs text-rose-400 hidden">رمز عبور نادرست است.</div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs shadow-2xl transition-all duration-300 transform translate-y-12 opacity-0 flex items-center gap-2">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastMsg">با موفقیت کپی شد!</span>
+  </div>
+
+  <!-- LIGHTWEIGHT STANDALONE QR GENERATOR (Zero external dependency) -->
+  <script>
+    // Tiny SVG QR Code Generator
+    function generateQRCodeSVG(text, size = 180) {
+      // Use standard quick Google Chart API or inline SVG fallback
+      const encoded = encodeURIComponent(text);
+      return `<img src="https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encoded}" alt="QR Code" width="${size}" height="${size}" class="rounded-lg shadow" onerror="this.onerror=null; this.src='https://chart.googleapis.com/chart?chs=${size}x${size}&cht=qr&chl=${encoded}';">`;
+    }
+  </script>
+
+  <!-- DASHBOARD APPLICATION LOGIC -->
+  <script>
+    let allUsers = [];
+    let currentLang = 'fa';
+
+    // Helper: format bytes
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-12', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-12', 'opacity-0');
+      }, 2500);
+    }
+
+    function copyToClipboard(text, msg = 'با موفقیت کپی شد!') {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(msg);
+      }).catch(err => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast(msg);
+      });
+    }
+
+    // Modal Handlers
+    function openAddUserModal() {
+      generateRandomUUID();
+      generateRandomPass();
+      document.getElementById('modalUsername').value = '';
+      document.getElementById('modalNotes').value = '';
+      document.getElementById('addUserModal').classList.remove('hidden');
+    }
+
+    function closeAddUserModal() {
+      document.getElementById('addUserModal').classList.add('hidden');
+    }
+
+    function generateRandomUUID() {
+      const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+      document.getElementById('modalUUID').value = uuid;
+    }
+
+    function generateRandomPass() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let pass = '';
+      for (let i = 0; i < 12; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('modalPass').value = pass;
+    }
+
+    function openQrModal(title, linkText, typeLabel) {
+      document.getElementById('qrModalTitle').innerText = title;
+      document.getElementById('qrConfigTypeLabel').innerText = typeLabel || 'لینک کانفیگ:';
+      document.getElementById('qrLinkText').value = linkText;
+      document.getElementById('qrContainer').innerHTML = generateQRCodeSVG(linkText, 200);
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    function copyModalLink() {
+      const text = document.getElementById('qrLinkText').value;
+      copyToClipboard(text, 'لینک کپی شد!');
+    }
+
+    // Language Toggle
+    function toggleLang() {
+      currentLang = currentLang === 'fa' ? 'en' : 'fa';
+      document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
+      document.documentElement.lang = currentLang;
+      document.getElementById('langToggle').innerText = currentLang === 'fa' ? 'English' : 'فارسی';
+      renderUsers(allUsers);
+    }
+
+    // Authentication
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/me');
+        if (res.status === 401) {
+          document.getElementById('loginModal').classList.remove('hidden');
+        } else {
+          document.getElementById('loginModal').classList.add('hidden');
+          fetchUsersAndStats();
+        }
+      } catch (e) {
+        document.getElementById('loginModal').classList.remove('hidden');
+      }
+    }
+
+    async function submitLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('adminPasswordInput').value;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({password: pass})
+        });
+        if (res.ok) {
+          document.getElementById('loginModal').classList.add('hidden');
+          fetchUsersAndStats();
+        } else {
+          document.getElementById('loginError').classList.remove('hidden');
+        }
+      } catch (err) {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      document.cookie = 'milijon_token=; Max-Age=0; path=/;';
+      location.reload();
+    }
+
+    // API Calls
+    async function fetchUsersAndStats() {
+      try {
+        const [usersRes, statsRes] = await Promise.all([
+          fetch('/api/users'),
+          fetch('/api/stats')
+        ]);
+
+        if (usersRes.status === 401 || statsRes.status === 401) {
+          document.getElementById('loginModal').classList.remove('hidden');
+          return;
+        }
+
+        allUsers = await usersRes.json();
+        const stats = await statsRes.json();
+
+        // Update Stats
+        document.getElementById('statTotalUsers').innerText = stats.total_users;
+        document.getElementById('statActiveUsers').innerText = stats.active_users;
+        document.getElementById('statTotalTraffic').innerText = formatBytes(stats.total_upload_bytes + stats.total_download_bytes);
+        document.getElementById('statUpload').innerText = formatBytes(stats.total_upload_bytes);
+        document.getElementById('statDownload').innerText = formatBytes(stats.total_download_bytes);
+        document.getElementById('statUptime').innerText = stats.uptime;
+        document.getElementById('userCountBadge').innerText = `${allUsers.length} کاربر`;
+        if (stats.server_domain) {
+          document.getElementById('domainBadge').innerText = stats.server_domain;
+        }
+
+        renderUsers(allUsers);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      }
+    }
+
+    function filterUsers() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const preset = document.getElementById('filterPreset').value;
+
+      const filtered = allUsers.filter(u => {
+        const matchQ = u.username.toLowerCase().includes(q) || (u.notes && u.notes.toLowerCase().includes(q));
+        const matchPreset = preset === 'all' || u.country_preset === preset;
+        return matchQ && matchPreset;
+      });
+      renderUsers(filtered);
+    }
+
+    function renderUsers(users) {
+      const container = document.getElementById('usersList');
+      if (users.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 glass-card rounded-2xl">
+            <p class="text-slate-400 text-sm">هیچ کاربری یافت نشد / No users found</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = users.map(user => {
+        const flag = user.country_preset === 'iran' ? '🇮🇷' : (user.country_preset === 'china' ? '🇨🇳' : (user.country_preset === 'russia' ? '🇷🇺' : '🌐'));
+        const activeClass = user.is_active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/40 text-slate-400 border-slate-700';
+        const activeText = user.is_active ? 'فعال' : 'غیرفعال';
+        const totalTraffic = formatBytes(user.upload_bytes + user.download_bytes);
+
+        return `
+          <div class="glass-card rounded-2xl p-5 space-y-4 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between">
+            <div>
+              <!-- User Header -->
+              <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-lg border border-slate-700">
+                    ${flag}
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-100 text-sm flex items-center gap-2">
+                      ${user.username}
+                      <span class="text-[10px] px-2 py-0.5 rounded-full border font-mono ${activeClass}">
+                        ${activeText}
+                      </span>
+                    </h4>
+                    <p class="text-[11px] text-slate-400 font-mono truncate max-w-[160px]" title="${user.uuid}">${user.uuid}</p>
+                  </div>
+                </div>
+
+                <!-- Toggle active button -->
+                <button onclick="toggleUser(${user.id})" class="p-1.5 rounded-lg glass-input hover:bg-slate-800 text-slate-400 hover:text-white transition" title="تغییر وضعیت">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </button>
+              </div>
+
+              <!-- Traffic Details -->
+              <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>مصرف: <b class="text-slate-200">${totalTraffic}</b></span>
+                <span>↑ ${formatBytes(user.upload_bytes)} / ↓ ${formatBytes(user.download_bytes)}</span>
+              </div>
+
+              ${user.notes ? `<p class="mt-2 text-[11px] text-slate-400 bg-slate-900/40 px-2.5 py-1 rounded-lg truncate">${user.notes}</p>` : ''}
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="pt-3 border-t border-slate-800/80 space-y-2">
+              <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+                <!-- VLESS -->
+                <button onclick="copyToClipboard('${user.vless_link}', 'لینک VLESS کپی شد!')" class="py-1.5 px-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 font-medium transition flex items-center justify-center gap-1">
+                  <span>VLESS</span>
+                </button>
+                <!-- Trojan -->
+                <button onclick="copyToClipboard('${user.trojan_link}', 'لینک Trojan کپی شد!')" class="py-1.5 px-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 font-medium transition flex items-center justify-center gap-1">
+                  <span>Trojan</span>
+                </button>
+                <!-- VMess -->
+                <button onclick="copyToClipboard('${user.vmess_link}', 'لینک VMess کپی شد!')" class="py-1.5 px-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 font-medium transition flex items-center justify-center gap-1">
+                  <span>VMess</span>
+                </button>
+              </div>
+
+              <!-- Subscription Link & QR -->
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <button onclick="copyToClipboard('${user.sub_url}', 'لینک اشتراک خودکار کپی شد!')" class="flex-1 py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center justify-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                  <span>لینک سابسکریپشن</span>
+                </button>
+
+                <button onclick="openQrModal('${user.username} - VLESS QR', '${user.vless_link}', 'VLESS کانفیگ:')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="نمایش بارکد QR">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                </button>
+
+                <button onclick="deleteUser(${user.id})" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition" title="حذف کاربر">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function submitAddUser(e) {
+      e.preventDefault();
+      const username = document.getElementById('modalUsername').value.trim();
+      const uuid = document.getElementById('modalUUID').value.trim() || null;
+      const pass = document.getElementById('modalPass').value.trim() || null;
+      const preset = document.getElementById('modalPreset').value;
+      const notes = document.getElementById('modalNotes').value.trim();
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            username: username,
+            uuid: uuid,
+            password: pass,
+            country_preset: preset,
+            notes: notes
+          })
+        });
+
+        if (res.ok) {
+          closeAddUserModal();
+          showToast('کاربر جدید با موفقیت اضافه شد!');
+          fetchUsersAndStats();
+        } else {
+          const data = await res.json();
+          alert(data.detail || 'خطا در ایجاد کاربر');
+        }
+      } catch (err) {
+        alert('خطای اتصال به سرور');
+      }
+    }
+
+    async function toggleUser(id) {
+      try {
+        await fetch(`/api/users/${id}/toggle`, {method: 'POST'});
+        fetchUsersAndStats();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('آیا از حذف این کاربر اطمینان دارید؟')) return;
+      try {
+        await fetch(`/api/users/${id}`, {method: 'DELETE'});
+        showToast('کاربر حذف شد.');
+        fetchUsersAndStats();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Auto poll every 10 seconds
+    setInterval(fetchUsersAndStats, 10000);
+    // Initial Auth Check
+    checkAuth();
+  </script>
+</body>
+</html>
